@@ -1,0 +1,91 @@
+Contract
+
+struct request:
+Uint requestID
+String datasetSource
+String modelSource
+Address requestOwner
+Uint bid
+String ConsensusType
+Container Result #stores data AFTER consensus has been performed
+Map (Miner -> float) participation #normalized floats so the participation of completed request sums to 1
+
+Smart Contract:
+mapping(tokenID -> int) dividends
+ERC721(probably) token
+Address[] miners
+Oracle pipelineAPI
+Request[] waitingRequests #Requests that have not been sent to pipeline
+Request[] workingRequests #Requests that have been sent to the pipeline
+
+Modifiers:
+tokenHolderOnly
+
+Function sendRequest(request) #sends to pipeline
+Function sendAllRequests() #calls sendRequest function for all waiting requests
+Function collectDividends tokenHolderOnly() #called per wallet owner. Goes through each token owned and collects dividends
+Function createRequest(datasetSource, modelSource, bid)
+Function retrieveData(requestID) #Request owner calls to get their final results
+
+
+Pipeline
+
+Abstract class Consensus: #Code to make product extensible
+map<miner -> data> #stores data from all miners once submitted BEFORE consensus
+
+Abstract function takeConsensus(data) #takes consensus and removes data submitted by miners below standard deviation (or other threshold)
+Abstract async function receiveData(data)
+
+Class ImageLabelConsensus extends Consensus: #Actual class to implement for our demo
+Function takeConsensus
+async function receiveData(data) #calls verifier on all data received before adding to data container
+
+Class request:
+Uint requestID
+String datasetSource
+String modelSource
+Address provider
+Uint bid
+Consensus consensusMethod
+Container Result #stores data AFTER consensus has been performed
+Map (Miner -> float) participation #normalized floats so the participation of completed request sums to 1
+
+Class Miner:
+string minerAddress
+Bool currentlyWorking
+Request currentRequest
+Uint currentDeposit
+
+Function takeDeposit(amount) #called by assignWork. Takes deposit of etherium to be returned after consensus assuming pass
+Function returnDeposit()
+
+Class Pipeline:
+PriorityQueue<Request> waitingRequests #sorted in order of highest bid price to lowest (or highest return per work?)
+Request[] workingRequests
+Miner[] miners
+
+Async function retrieveRequests() returns request[]
+Function assignWork() #Assigns a request to a miner
+Function finishRequest(request)
+Client
+In the real world the pipeline would need to be hosted on a server and this would be the only local client. For our demo, this will simply be combined with the pipeline via composition and the pipeline will run locally.
+
+Class User:
+String Address
+Uint minReward # minimum reward that the user will accept
+
+Struct request:
+Uint requestID
+String datasetSource
+String modelSource
+Address provider
+Uint reward
+
+Function setMinReward()
+
+Class client:
+User miner
+
+Function getModel(Request)
+Function getDataSet(Request)
+Function startMining(User) # interfaces with the pipeline to get a classification batch
