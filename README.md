@@ -19,6 +19,11 @@ The system involves three primary end-user groups, each with distinct roles and 
 ## Workflow
 ![Workflow Flowchart](images/Workflow.jpg)
 
+
+## Sequence Diagram
+![PoV_Seq](https://github.com/AI-and-Blockchain/S24_Proof_of_Vision_Tokens/assets/75578919/b8d6b3f7-4df8-4bd5-9edb-4cd013712254)
+
+
 ## Project Outcomes
 Decentralized Classification System: The primary outcome is a decentralized platform that enables the offloading of image classification tasks to a distributed network of miners, ensuring efficient use of computational resources and democratizing access to machine learning capabilities.
 
