@@ -21,13 +21,16 @@ PipelineRequest->Pipeline:Gets added to \nRequest PriorityQueue
 Pipeline->Pipeline:Goes through Requests until\n this one is selected
 Pipeline->PipelineRequest:Selects Request to \nbe current active request
 PipelineRequest->BatchMaker:Seperates the request into Batches\n(for now just one)
-Client->BatchMaker:Asks for request through pipeline API\n(gives their eth wallet address too)
+
+Client->Pipeline:Asks for request through API\n(gives their eth wallet address too)
+Pipeline->BatchMaker:Prompts BatchMaker
 BatchMaker->Client:Sends batch info in API return\n(the model and images links)
 Client->Hosting Service:Requests images and model
 Hosting Service->Client:Sends images and model
 Client->Client:Classifies images using model
-Client->BatchMaker:Sends image labels through API
-BatchMaker->PipelineRequest:Sends image labels
+
+Client->Pipeline:Sends image labels through API
+Pipeline->PipelineRequest:Sends image labels
 PipelineRequest->Consensus:Sends image labels
 Consensus->Consensus:Waits for batch consensus to occur\nAcross many workers
 Consensus->PipelineRequest:Sends result of batch
