@@ -23,7 +23,7 @@ The system involves three primary end-user groups, each with distinct roles and 
 
 
 ## Sequence Diagram
-![PoV_Seq](https://github.com/AI-and-Blockchain/S24_Proof_of_Vision_Tokens/assets/75578919/b8d6b3f7-4df8-4bd5-9edb-4cd013712254)
+![PoV_Seq](images/seq_good_maybe.png)
 
 
 ## Project Outcomes

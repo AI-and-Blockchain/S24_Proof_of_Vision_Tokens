@@ -1,0 +1,39 @@
+title Pipeline-Client Interaction
+
+participant "Supplier \n(Blockchain)" as Supplier
+participant "Hosting Service \n(Off Chain)" as Hosting Service
+participant "TokenManager Smart Contract \n(Blockchain)" as TokenManager
+participant "Chainlink Oracle \n(Blockchain)" as Chainlink
+participant "Minted Tokens \n(Blockchain)" as Tokens
+participant "Pipeline \n(Python Class)" as Pipeline
+participant "PipelineRequest \n(Python Class)" as PipelineRequest
+participant "BatchMaker \n(Python Class)" as BatchMaker
+participant "Client \n(Python Class on Worker's Machine)" as Client
+participant "Consensus \n(Python Class)" as Consensus
+
+Supplier->Hosting Service:Manually uploads images and model\nto a hosting service off-chain
+Supplier->TokenManager:Transacts with TokenManager to make a request.\nProvides:Bid in eth, image links, model link
+TokenManager->Chainlink:Sends Request object to oracle
+Chainlink->Pipeline:Sends API request to Pipeline with a callback
+
+Pipeline->PipelineRequest:Creates a PipelineRequest
+PipelineRequest->Pipeline:Gets added to \nRequest PriorityQueue
+Pipeline->Pipeline:Goes through Requests until\n this one is selected
+Pipeline->PipelineRequest:Selects Request to \nbe current active request
+PipelineRequest->BatchMaker:Seperates the request into Batches\n(for now just one)
+Client->BatchMaker:Asks for request through pipeline API\n(gives their eth wallet address too)
+BatchMaker->Client:Sends batch info in API return\n(the model and images links)
+Client->Hosting Service:Requests images and model
+Hosting Service->Client:Sends images and model
+Client->Client:Classifies images using model
+Client->BatchMaker:Sends image labels through API
+BatchMaker->PipelineRequest:Sends image labels
+PipelineRequest->Consensus:Sends image labels
+Consensus->Consensus:Waits for batch consensus to occur\nAcross many workers
+Consensus->PipelineRequest:Sends result of batch
+PipelineRequest->Pipeline:Sends completed request info\n(Includes all worker address info)
+Pipeline->Chainlink:Uses callback to send completed request
+Chainlink->TokenManager:Receives completed Request through callback
+TokenManager->Tokens:Mints more tokens, assigns the token owners\nto the workers that participated in completing the request
+TokenManager->Supplier:Transacts to send labeled images
+TokenManager->Tokens:Transacts to give the eth of the bid in dividends to all minted tokens
