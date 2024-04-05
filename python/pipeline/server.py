@@ -1,52 +1,7 @@
-from pydantic import BaseModel
-from fastapi import FastAPI, status
-from classes import *
+import uvicorn
+from app import app
 
-# TODO: Figure out a testing suite for each endpoint
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8181)
 
-app = FastAPI()  # initialize fast api server
 
-pipeline = Pipeline()  # initialize pipeline
-
-# Inherit from BaseModel because this will be sent as a body from fastapi (probably)
-class Request(BaseModel):
-    requestID: int
-    datasetSource: str
-    modelSource: str
-    requestOwner: str # address
-    bid: int # in wei probably
-    consensusType: str # unsure if relevant still
-    result: list # the labels
-    participation: dict[str, float]
-
-# a data structure for labels
-class Labels(BaseModel):
-    requestID: int
-    userAddress: str
-    labels: list # same as result in Request
-
-@app.get("/")  # default root
-async def root():
-    return {"message": "API is working"}
-
-# Receive a new Request
-# TODO: Some kind of callback back to chainlink and then smart contract
-#  honestly probably not a callback and instead just some transaction since we have a request id
-@app.put("/newRequest", status_code=status.HTTP_200_OK)
-async def newRequest(req: Request):
-    # TODO: turn Request into PipelineRequest and add to pipeline's priority queue
-    return {"message": "Request received"} # Probably won't be used, just look at the status code
-
-# Client GET a new Batch
-@app.get("/batch", status_code=status.HTTP_200_OK)
-async def giveBatch() -> Batch:
-    # TODO: don't return dummy data
-    return Batch(modelUrl="https://example.com/model", 
-                 datasetUrl="https://example.com/dataset", 
-                 indexTuple=(0, 100), requestID=1)
-
-# Client POST labels
-@app.post("/labels", status_code=status.HTTP_202_ACCEPTED)
-async def postLabels(labels: Labels):
-    # TODO: Give the labels to the consensus 
-    return {"message": "Labels received"} # again probably won't be used
