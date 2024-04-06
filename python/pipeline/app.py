@@ -17,12 +17,17 @@ async def favicon():
 class Request(BaseModel):
     requestID: int
     datasetSource: str
+    numImages: int
     modelSource: str
     requestOwner: str # address
     bid: int # in wei probably
     consensusType: str # unsure if relevant still
     result: list # the labels
     participation: dict[str, float]
+
+    # Overload comparison operators for priority queue
+    def __lt__(self, other):
+        return (self.bid * -1) < (other.bid * -1) # negate so it's a max heap
 
 # a data structure for labels
 class Labels(BaseModel):
@@ -43,14 +48,18 @@ async def newRequest(req: Request):
     return {"message": "Request received"} # Probably won't be used, just look at the status code
 
 # Client GET a new Batch
+# Query parameter is the worker's address.
+# This is the endpoint that the worker will hit to get their batch
+# First prompts batchmaker to generate the batch if not already generated
 @app.get("/batch", status_code=status.HTTP_200_OK)
-async def giveBatch() -> BatchItem:
+async def giveBatch(address: str) -> BatchItem:
     # TODO: don't return dummy data
     return BatchItem(modelUrl="https://example.com/model", 
                  datasetUrl="https://example.com/dataset", 
                  indexTuple=(0, 100), requestID=1)
 
 # Client POST labels
+# Will also check consensus after each label post. See the checkRequest method in Pipeline
 @app.put("/labels", status_code=status.HTTP_202_ACCEPTED)
 async def postLabels(labels: Labels):
     # TODO: Give the labels to the consensus 

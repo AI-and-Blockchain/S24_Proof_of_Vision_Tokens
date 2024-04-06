@@ -4,7 +4,7 @@ import tensorflow as tf
 from PIL import Image
 import zipfile
 import math
-from batchmaker import Batchmaker
+from python.pipeline.batchmaker import Batchmaker
 
 class Client:
     def __init__(self, eth_address, batchmaker):

@@ -42,6 +42,14 @@ class ImageLabelConsensus(Consensus):
             consolidated_labels.append(most_common_label)
 
         return consolidated_labels
+    
+    def checkDone(self):
+        """
+        Checks if the consensus algorithm has finished processing.
+        If it is, return the labels.
+        If it's not, return None.
+        """
+        pass
 
 # Example usage:
 image_label_consensus = ImageLabelConsensus()
