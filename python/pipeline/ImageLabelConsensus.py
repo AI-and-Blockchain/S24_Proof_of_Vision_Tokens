@@ -45,6 +45,8 @@ class ImageLabelConsensus(Consensus):
     
     def checkDone(self):
         """
+        Russell Method
+        
         Checks if the consensus algorithm has finished processing.
         If it is, return the labels.
         If it's not, return None.

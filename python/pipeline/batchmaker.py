@@ -4,6 +4,7 @@ from PIL import Image
 import os
 import requests
 import math
+from classes import PipelineRequest
 
 class Batchmaker:
     def __init__(self, model_url, dataset_url, total_images, num_clients):
@@ -27,7 +28,6 @@ class Batchmaker:
             }
             print(f"{f'client_{i+1}'} will process images from index {start_index} to {end_index - 1}.")
 
-
     def request_batch(self, eth_address):
         return self.batches.get(eth_address)
 
@@ -37,3 +37,13 @@ class Batchmaker:
         else:
             print(f"Batch not found for the provided ETH address: {eth_address}")
 
+    '''
+    Russell Note:
+    I'm not sure how this works. From my perspective, this needs two things:
+    1. a way to generate a new batch from a PipelineRequest object
+    2. a way to turn this into a format that the workers will receive
+        It will return this object to be sent to the worker via the worker calling GET /batch
+        This will also save the worker's address in the PipelineRequest object
+
+    I don't know if you have this right now.
+    '''
