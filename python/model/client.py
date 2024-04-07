@@ -109,6 +109,16 @@ class Client:
         self.batchmaker.receive_labels(self.eth_address, predictions)
         print(f"Total number of processed images by {self.eth_address}: {len(predictions)}")
         return predictions
+    
+    '''
+    Russell Notes:
+
+    This will start with an API call to GET /batch with the client's address.
+    Then the client will receive the batch and start processing the images.
+    After processing, the client will send the labels to the consensus algorithm using POST /labels.
+
+    I'm not sure how this applies to what you have now but just make sure it can do the above.
+    '''
 
 batchmaker = Batchmaker(
     'https://huggingface.co/spaces/ayaanzaveri/mnist/resolve/c959fe1db8b15ed643b91856cb2db4e2a3125938/mnist-model.h5',
