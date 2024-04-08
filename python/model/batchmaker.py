@@ -6,34 +6,30 @@ import requests
 import math
 
 class Batchmaker:
-    def __init__(self, model_url, dataset_url, total_images, num_clients):
+    def __init__(self, model_url, dataset_url):
         self.default_model_url = model_url
         self.default_dataset_url = dataset_url
-        self.total_images = total_images
-        self.num_clients = num_clients
         self.batches = {}
-        self.distribute_batches()
-
-    def distribute_batches(self):
-        images_per_client = math.ceil(self.total_images / self.num_clients)
-        for i in range(self.num_clients):
-            start_index = i * images_per_client
-            end_index = min(start_index + images_per_client, self.total_images)
-            self.batches[f'client_{i+1}'] = {
-                'model_url': self.default_model_url,
-                'dataset_url': self.default_dataset_url,
-                'start_index': start_index,
-                'end_index': end_index,
-            }
-            print(f"{f'client_{i+1}'} will process images from index {start_index} to {end_index - 1}.")
-
+        self.received_labels = {}  # Dictionary to store labels from each client
 
     def request_batch(self, eth_address):
-        return self.batches.get(eth_address)
+        if eth_address not in self.batches:
+            self.batches[eth_address] = {
+                'model_url': self.default_model_url,
+                'dataset_url': self.default_dataset_url,
+            }
+        # Initialize the received labels list for this client
+        if eth_address not in self.received_labels:
+            self.received_labels[eth_address] = []
+        return self.batches[eth_address]
 
     def receive_labels(self, eth_address, labels):
         if eth_address in self.batches:
+            # Append the labels received from this client to its specific array
+            self.received_labels[eth_address].extend(labels)
             print(f"Labels received for {eth_address}: {labels}")
         else:
             print(f"Batch not found for the provided ETH address: {eth_address}")
+
+
 
