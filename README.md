@@ -22,7 +22,7 @@ The system involves three primary end-user groups, each with distinct roles and 
 ![Workflow Flowchart](images/Workflow.jpg)
 
 ## Class Diagram
-![UML Diagram](images/check4ClassDiagram.png)
+![UML Diagram](images/Check4ClassDiagram.png)
 
 ## Sequence Diagram
 ![PoV_Seq](images/seq_good_maybe.png)
