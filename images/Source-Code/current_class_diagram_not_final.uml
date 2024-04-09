@@ -1,0 +1,127 @@
+@startuml
+class FastAPI {
+        +GET /favicon.ico(): FileResponse
+        +GET /(): {"message": "API is working"}
+        +POST /newRequest(req: Request): {"message": "Request received"}
+        +GET /batch(address: str): BatchItem
+        +PUT /labels(labels: Labels): {"message": "Labels received"}
+    }
+
+    class Labels {
+        +requestID: int
+        +userAddress: str
+        +labels: list
+    }
+
+    class Request {
+        +requestID: int
+        +datasetSource: str
+        +numImages: int
+        +modelSource: str
+        +requestOwner: str
+        +bid: int
+        +consensusType: str
+        +result: list
+        +participation: dict[str, float]
+        +__lt__(other: Request): bool
+    }
+
+    class BatchItem {
+        +modelUrl: str
+        +datasetUrl: str
+        +indexTuple: tuple[int, int]
+        +requestID: int
+    }
+
+    class Worker {
+        +address: str
+        +participation: float
+        +__init__(address: str)
+        +__lt__(other: Worker): bool
+    }
+
+    class PipelineRequest {
+        +requestID: int
+        +datasetSource: str
+        +numImages: int
+        +modelSource: str
+        +requestOwner: str
+        +bid: int
+        +result: list
+        +participation: dict[Worker, float]
+        +workers: list[Worker]
+        +consensusObj: ImageLabelConsensus
+        +batchMaker: Batchmaker
+        +__init__(request: Request)
+        +__init__(requestID: int, datasetSource: str, numImages: int, modelSource: str, requestOwner: str, bid: int, result: list, participation: dict[Worker, float])
+        +add_worker(worker: Worker)
+    }
+
+    class Pipeline {
+        +req_pq: list[PipelineRequest]
+        +currentRequest: PipelineRequest
+        +__init__()
+        +add_request(req: PipelineRequest)
+        +check_request()
+    }
+
+    class Client {
+        +eth_address: str
+        +batchmaker: Batchmaker
+        +model: tf.keras.Model
+        +dataset: tf.data.Dataset
+        +start_index: int
+        +end_index: int
+        +__init__(eth_address: str, batchmaker: Batchmaker)
+        -_download_file(url: str, destination_path: str)
+        -_extract_zip(file_path: str, extract_path: str)
+        -_filter_images(directory: str)
+        +getClientModel(model_url: str, model_path: str)
+        +getDataset(dataset_url: str, dataset_path: str)
+        +request_and_load_batch()
+        +startMining(): list[int]
+    }
+
+    class Batchmaker {
+        +default_model_url: str
+        +default_dataset_url: str
+        +total_images: int
+        +num_clients: int
+        +batches: dict[str, dict]
+        +__init__(model_url: str, dataset_url: str, total_images: int, num_clients: int)
+        +distribute_batches()
+        +request_batch(eth_address: str): dict
+        +receive_labels(eth_address: str, labels: list)
+    }
+
+    class Consensus {
+        <<abstract>>
+        +receiveData(data: any)
+        +responseData(): any
+    }
+
+    class ImageLabelConsensus {
+        +received_labels: dict[str, list]
+        +__init__()
+        +receiveData(data: dict[str, list])
+        +responseData(): list
+        +checkDone(): list|None
+    }
+
+    FastAPI --> Labels
+    FastAPI --> Request
+    FastAPI --> BatchItem
+    FastAPI --> Pipeline
+
+    Pipeline --> PipelineRequest
+    PipelineRequest --> Request
+    PipelineRequest --> Worker
+    PipelineRequest --> ImageLabelConsensus
+    PipelineRequest --> Batchmaker
+
+    Client --> Batchmaker
+
+    Batchmaker --> PipelineRequest
+
+    ImageLabelConsensus --> Consensus
+@enduml
