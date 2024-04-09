@@ -4,39 +4,68 @@ import tensorflow as tf
 from PIL import Image
 import zipfile
 import math
-from python.pipeline.batchmaker import Batchmaker
+import matplotlib.pyplot as plt
 
-class Client:
-    def __init__(self, eth_address, batchmaker):
+
+class client:
+    def __init__(self, model_url, dataset_url):
+        self.default_model_url = model_url
+        self.default_dataset_url = dataset_url
+        self.batches = {}
+        self.received_labels = {}  # Dictionary to store labels from each user
+
+    def request_batch(self, eth_address):
+        if eth_address not in self.batches:
+            self.batches[eth_address] = {
+                'model_url': self.default_model_url,
+                'dataset_url': self.default_dataset_url,
+            }
+        # Initialize the received labels list for this user
+        if eth_address not in self.received_labels:
+            self.received_labels[eth_address] = []
+        return self.batches[eth_address]
+
+    def receive_labels(self, eth_address, labels,requestID):
+
+        self.received_labels[eth_address].extend(labels)
+        print(f"Labels received for {eth_address}: {labels}")
+
+
+        # data = {
+        # "requestID": requestID,  # Assuming you have the request ID available
+        # "userAddress": eth_address,
+        #  "labels": labels
+        #         }
+
+        # # Making a PUT request to submit the labels to the server
+        # response = requests.put("https://dull-scrubs-bee.cyclic.app/labels", json=data)
+
+        # if response.status_code == 202:
+        #     print("Labels successfully submitted to the server.")
+        # else:
+        #      print("Failed to submit labels. Response:", response.text)
+
+
+class user:
+    def __init__(self, eth_address, client):
         self.eth_address = eth_address
-        self.batchmaker = batchmaker
+        self.client = client
         self.model = None
         self.dataset = None
         self.start_index = 0
         self.end_index = 0
 
-    # Other methods (_download_file, _extract_zip, _filter_images, getClientModel) remain unchanged...
+    # Other methods (_download_file, _extract_zip, _filter_images, getuserModel) remain unchanged...
     def _download_file(self, url, destination_path):
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-
         if "drive.google.com" in url:
             file_id = url.split('/d/')[1].split('/')[0]
             url = f"https://drive.google.com/uc?export=download&id={file_id}"
         response = requests.get(url, stream=True)
-        if response.status_code == 200:
-            with open(destination_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=128):
-                    f.write(chunk)
-        else:
-            raise Exception(f"Failed to download file from {url}")
+        with open(destination_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=128):
+                f.write(chunk)
 
     def _extract_zip(self, file_path, extract_path):
-        # Ensure the ZIP file exists and is valid
-        if not zipfile.is_zipfile(file_path):
-            raise zipfile.BadZipFile(f"{file_path} is not a valid zip file.")
-        # Ensure the extraction path exists
-        os.makedirs(extract_path, exist_ok=True)
         with zipfile.ZipFile(file_path, 'r') as zip_ref:
             zip_ref.extractall(extract_path)
 
@@ -50,45 +79,39 @@ class Client:
                     #print(f'Removing non-image file: {file_path}')
                     os.remove(file_path)
 
-    def getClientModel(self, model_url, model_path):
+    def getuserModel(self, model_url):
+        model_path = 'mnist_digit_model'
         self._download_file(model_url, model_path)
-        if os.path.exists(model_path):
-            self.model = tf.keras.models.load_model(model_path)
-        else:
-            raise Exception(f"Model file not found at {model_path}")
+        self.model = tf.keras.models.load_model(model_path)
 
-    def getDataset(self, dataset_url, dataset_path):
-        self._download_file(dataset_url, dataset_path)
-        dataset_extract_path = 'dataset_extracted'
-        self._extract_zip(dataset_path, dataset_extract_path)
+    def getDataset(self, dataset_url):
+        dataset_zip_path = 'mnist_digit_model.zip'
+        dataset_extract_path = 'mnist_digit_dataset'
+        self._download_file(dataset_url, dataset_zip_path)
+        self._extract_zip(dataset_zip_path, dataset_extract_path)
         self._filter_images(dataset_extract_path)
+
+        # Disable shuffling and set a fixed batch size
         self.dataset = tf.keras.preprocessing.image_dataset_from_directory(
             dataset_extract_path,
             color_mode='grayscale',
             image_size=(28, 28),
-            batch_size=32
+            batch_size=16,  # Set batch size to 100
+            shuffle=False  # Disable shuffling to maintain the order
         )
 
-
     def request_and_load_batch(self):
-        batch_info = self.batchmaker.request_batch(self.eth_address)
-        if batch_info:
-            self.start_index = batch_info['start_index']
-            self.end_index = batch_info['end_index']
-            model_path = os.path.join('models', 'downloaded_model.h5')
-            dataset_path = os.path.join('datasets', 'downloaded_dataset.zip')
-            self.getClientModel(batch_info['model_url'], model_path)
-            self.getDataset(batch_info['dataset_url'], dataset_path)
-        else:
-            print(f"No batch assigned for {self.eth_address}")
+        batch_info = self.client.request_batch(self.eth_address)
+        self.getuserModel(batch_info['model_url'])
+        # Call getDataset with only the necessary dataset_url
+        self.getDataset(batch_info['dataset_url'])
 
-    # Assuming the dataset is ordered and can be sliced by indices
-    def startMining(self):
+    def startMining(self,requestID):
         if not self.model or not self.dataset:
             raise ValueError("Model or dataset not loaded")
 
         predictions = []
-        total_images_to_process = self.end_index - self.start_index
+        total_images_to_process = 1
 
         print(f"{self.eth_address} will process images from index {self.start_index} to {self.end_index - 1}. Total images: {total_images_to_process}")
 
@@ -97,39 +120,42 @@ class Client:
             for image in images_batch:
                 if processed_images >= total_images_to_process:
                     break
+
+                plt.imshow(image.numpy().astype("uint8"))
+                plt.title(f"Processing Image {processed_images + 1} by {self.eth_address}")
+                plt.show()
+
                 # Predict each image individually
                 pred = self.model.predict(tf.expand_dims(image, 0))  # Add batch dimension
                 prediction = tf.argmax(pred, axis=1).numpy()[0]  # Get the prediction for the single image
                 predictions.append(prediction)
                 processed_images += 1
-            
+
             if processed_images >= total_images_to_process:
                 break
 
-        self.batchmaker.receive_labels(self.eth_address, predictions)
+        #self.client.receive_labels(self.eth_address, predictions,requestID)
         print(f"Total number of processed images by {self.eth_address}: {len(predictions)}")
         return predictions
-    
-    '''
-    Russell Notes:
-
-    This will start with an API call to GET /batch with the client's address.
-    Then the client will receive the batch and start processing the images.
-    After processing, the client will send the labels to the consensus algorithm using POST /labels.
-
-    I'm not sure how this applies to what you have now but just make sure it can do the above.
-    '''
-
-batchmaker = Batchmaker(
-    'https://huggingface.co/spaces/ayaanzaveri/mnist/resolve/c959fe1db8b15ed643b91856cb2db4e2a3125938/mnist-model.h5',
-    'https://drive.google.com/file/d/1NUuR_01a64nXmTcvtouzTBkDch6_cMKZ/view?usp=sharing',
-    total_images=100,num_clients=5
-)
 
 
-# Create clients and assign them batches
-clients = [Client(f'client_{i+1}', batchmaker) for i in range(5)]
-for client in clients:
-    client.request_and_load_batch()
-    labels = client.startMining()
+import requests
+
+# Making a GET request to the FastAPI server to receive the batch information
+response = requests.get("https://dull-scrubs-bee.cyclic.app/batch")
+batch_data = response.json()
+
+# Parsing the JSON response to extract the necessary information
+model_url = batch_data["modelUrl"]
+dataset_url = batch_data["datasetUrl"]
+requestID = batch_data["requestID"]
+
+# Initializing the client class with the data received from the server
+client = client(model_url, dataset_url)
+
+# Create a single user and assign them a batch
+single_user = user('user_1', client)
+single_user.request_and_load_batch()
+labels = single_user.startMining(requestID)
+client.receive_labels('user_1', labels,requestID)
 
