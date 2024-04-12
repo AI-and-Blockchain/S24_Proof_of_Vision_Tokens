@@ -42,28 +42,18 @@ class ImageLabelConsensus(Consensus):
             consolidated_labels.append(most_common_label)
 
         return consolidated_labels
-    
-    def checkDone(self):
-        """
-        Russell Method
-        
-        Checks if the consensus algorithm has finished processing.
-        If it is, return the labels.
-        If it's not, return None.
-        """
-        pass
 
-# Example usage:
-image_label_consensus = ImageLabelConsensus()
+# # Example usage:
+# image_label_consensus = ImageLabelConsensus()
 
-# Simulating the receipt of data from different clients
-image_label_consensus.receiveData({
-    'client_1': batchmaker.received_labels['client_1'],
-    'client_2': batchmaker.received_labels['client_2'],
-    'client_3': batchmaker.received_labels['client_3'],
-    'client_4': batchmaker.received_labels['client_4'],
-    'client_5': batchmaker.received_labels['client_5'],
-})
+# # Simulating the receipt of data from different clients
+# image_label_consensus.receiveData({
+#     'client_1': batchmaker.received_labels['client_1'],
+#     'client_2': batchmaker.received_labels['client_2'],
+#     'client_3': batchmaker.received_labels['client_3'],
+#     'client_4': batchmaker.received_labels['client_4'],
+#     'client_5': batchmaker.received_labels['client_5'],
+# })
 
-consolidated_labels = image_label_consensus.responseData()
-print("Consolidated Labels:", consolidated_labels)
+# consolidated_labels = image_label_consensus.responseData()
+# print("Consolidated Labels:", consolidated_labels)

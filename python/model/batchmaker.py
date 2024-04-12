@@ -4,7 +4,6 @@ from PIL import Image
 import os
 import requests
 import math
-from classes import PipelineRequest
 
 class Batchmaker:
     def __init__(self, model_url, dataset_url, total_images, num_clients):
