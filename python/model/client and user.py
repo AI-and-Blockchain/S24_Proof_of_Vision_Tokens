@@ -118,28 +118,16 @@ class user:
             raise ValueError("Model or dataset not loaded")
 
         predictions = []
-        total_images_to_process = 3
 
-        print(f"{self.eth_address} will process images from index {self.start_index} to {self.end_index - 1}. Total images: {total_images_to_process}")
 
         processed_images = 0
         for images_batch, _ in self.dataset:
             for image in images_batch:
-                if processed_images >= total_images_to_process:
-                    break
-
-                # plt.imshow(image.numpy().astype("uint8"))
-                # plt.title(f"Processing Image {processed_images + 1} by {self.eth_address}")
-                # plt.show()
 
                 # Predict each image individually
                 pred = self.model.predict(tf.expand_dims(image, 0))  # Add batch dimension
                 prediction = tf.argmax(pred, axis=1).numpy()[0]  # Get the prediction for the single image
                 predictions.append(prediction)
-                processed_images += 1
-
-            if processed_images >= total_images_to_process:
-                break
 
         #self.client.receive_labels(self.eth_address, predictions,requestID)
         print(f"Total number of processed images by {self.eth_address}: {len(predictions)}")
@@ -148,7 +136,7 @@ class user:
 
 
 # Define the Ethereum address
-address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44f"
 
 # Making a GET request to the FastAPI server to receive the batch information
 response = requests.get("https://dull-scrubs-bee.cyclic.app/batch", params={"address": address})
@@ -171,3 +159,6 @@ single_user = user(address, client)
 single_user.request_and_load_batch()
 labels = single_user.startMining(requestID)
 client.receive_labels(address, labels,requestID)
+
+
+
