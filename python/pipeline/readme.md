@@ -63,7 +63,7 @@ These steps can be done locally or on the hosted website, however the hosted web
 
 2. Call /batch using any address that is formatted correctly. 
 3. Call /label with the same address and the labels. Make sure that the request ID and the number of labels match the number of images in the batch.
-4. Repeat steps 2 and 3 until the batch is complete. It will return the consensus label from the /label call.
+4. Repeat steps 2 and 3 until the batch is complete. For testing, this is currently hard coded to require 3 sets of labels. It will return the consensus label from the /label call.
     * This is not very easy to notice, which is fine since in the full application it will connect to the smart contract instead of just showing the labels.
 
 For information, call /showlabels or /showreq for the current labels and the current active request. 
