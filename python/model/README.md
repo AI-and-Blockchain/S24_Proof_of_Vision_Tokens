@@ -1,7 +1,7 @@
-Deep Learning Client-Server Model for Image Classification
+# Deep Learning Client-Server Model for Image Classification
 This repository contains a Python application designed for machine learning model training and evaluation using TensorFlow, focused on image classification tasks. It integrates client-server interaction for handling batches of images and processing their labels.
 
-Overview
+# Overview
 The system comprises two primary components:
 
 client: Handles requests for batches of images and the submission of predicted labels to a server.
@@ -9,8 +9,7 @@ user: Manages the downloading and processing of image datasets and machine learn
 Installation
 To get started with this project, clone the repository and install the required dependencies.
 
-bash
-Copy code
+
 git clone https://github.com/your-username/your-repo.git
 cd your-repo
 pip install -r requirements.txt
@@ -26,8 +25,7 @@ Start Mining: The user processes the images, predicts labels, and sends these la
 
 Example code snippet to set up and run the system:
 
-python
-Copy code
+
 # Define the Ethereum address and server URL
 eth_address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
 server_url = "https://dull-scrubs-bee.cyclic.app"
