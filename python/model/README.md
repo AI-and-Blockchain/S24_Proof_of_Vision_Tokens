@@ -6,9 +6,9 @@ This repository contains a Python application designed for machine learning mode
 ### Table of Contents
 You're sections headers will be used to reference location of destination.
 
-- [Overview](#description)
+- [Overview](#Overview)
 - [How To Use](#how-to-use)
-- [Features](#license)
+- [Features](#Features)
 
 ---
 
