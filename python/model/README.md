@@ -22,6 +22,11 @@ The system comprises two primary components:
 ---
 
 ## How To Use
+## Prerequisites
+ * Before you begin, ensure you have Python installed on your system. The project is 
+   built using Python 3.8+.
+ * TensorFlow, NumPy, and other necessary Python libraries.
+
 
 #### Installation
 To get started with this project, clone the repository and install the required dependencies.
@@ -31,14 +36,23 @@ git clone https://github.com/your-username/your-repo.git
 cd your-repo
 pip install -r requirements.txt
 ```
+#### Configuration
+Set the model and dataset URLs in the client initialization. These URLs are used to download the necessary machine learning model and image dataset.
+
 #### Usage
 Set the model and dataset URLs in the client initialization. These URLs are used to download the necessary machine learning model and image dataset.
 
-1. Initialize the Client and User: The client is initialized with URLs to the model and dataset. The user is created with an Ethereum address and is linked to the client.
+1. Initialize the Client and User:
+   * Set up the client with links to the model and dataset.
+   * Create a user instance with a specific Ethereum address linked to the client.
 
-2. Load and Process Batch: The user requests a batch of images, which involves downloading and extracting the dataset and model.
+2. Load and Process Batch
+   * The user requests and loads a batch of images.
+   * Processes the images and prepares them for classification.
 
-3. Start Mining: The user processes the images, predicts labels, and sends these labels back to the server.
+3. Start Mining: 
+   * Execute image classification.
+   * Send classification results back to the server.
 
 Example code snippet to set up and run the system:
 
@@ -60,9 +74,11 @@ client.receive_labels(eth_address, labels)
 
 ```
 ## Features
-1. Image Processing: Filters and prepares images for classification.
-2. Model Prediction: Utilizes TensorFlow to predict image labels based on the trained model.
-3. Server Communication: Sends predicted labels back to the server via a PUT request.
+* Image Processing: Filters and prepares images for classification.
+* Model Prediction: Utilizes TensorFlow to predict image labels based on the trained model.
+* Server Communication: Sends predicted labels back to the server via a PUT request.
 
+## License
+MIT
 
 
