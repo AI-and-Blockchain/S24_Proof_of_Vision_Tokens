@@ -44,6 +44,10 @@ If you want to run this locally, follow these steps:
    - To view the Swagger UI documentation, append `/docs` to the URL, e.g., `http://127.0.0.1:8000/docs`.
 
 ## Example Usage with Dummy Data
+To see this working with workers, follow the steps in the /model readme. 
+
+To see this working with the smart contract, do something that Caleb will add. 
+
 These steps can be done locally or on the hosted website, however the hosted website might not have the same data as the local version so local is recommended. It's reccomended to use the Swagger UI to interact with the API. Note that these steps don't necessarily have to be done in order except for the first newRequest call. You can also just play around, as the error messages should be descriptive enough to guide you.
 
 1. Create a new request using /newRequest with this dummy data:
