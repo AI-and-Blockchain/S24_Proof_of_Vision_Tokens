@@ -5,6 +5,8 @@ from PIL import Image
 import zipfile
 import math
 import matplotlib.pyplot as plt
+import numpy as np
+
 
 
 class client:
@@ -25,25 +27,30 @@ class client:
             self.received_labels[eth_address] = []
         return self.batches[eth_address]
 
-    def receive_labels(self, eth_address, labels,requestID):
+    def receive_labels(self, eth_address, labels, requestID):
+        # Convert labels to list of native Python data types
+        labels = labels.tolist() if isinstance(labels, np.ndarray) else labels
+        labels = [int(label) if isinstance(label, np.integer) else label for label in labels]
+
+        # Ensure requestID is a native int
+        requestID = int(requestID)
 
         self.received_labels[eth_address].extend(labels)
         print(f"Labels received for {eth_address}: {labels}")
 
+        data = {
+            "requestID": requestID,  # Now should be a native int
+            "userEthAddress": eth_address,
+            "labels": labels
+        }
 
-        # data = {
-        # "requestID": requestID,  # Assuming you have the request ID available
-        # "userAddress": eth_address,
-        #  "labels": labels
-        #         }
+        # Making a PUT request to submit the labels to the server
+        response = requests.put("https://dull-scrubs-bee.cyclic.app/labels", json=data)
 
-        # # Making a PUT request to submit the labels to the server
-        # response = requests.put("https://dull-scrubs-bee.cyclic.app/labels", json=data)
-
-        # if response.status_code == 202:
-        #     print("Labels successfully submitted to the server.")
-        # else:
-        #      print("Failed to submit labels. Response:", response.text)
+        if response.status_code == 202:
+            print("Labels successfully submitted to the server.")
+        else:
+            print("Failed to submit labels. Response:", response.text)
 
 
 class user:
@@ -96,7 +103,7 @@ class user:
             dataset_extract_path,
             color_mode='grayscale',
             image_size=(28, 28),
-            batch_size=16,  # Set batch size to 100
+            batch_size=128,  # Set batch size to 100
             shuffle=False  # Disable shuffling to maintain the order
         )
 
@@ -111,51 +118,47 @@ class user:
             raise ValueError("Model or dataset not loaded")
 
         predictions = []
-        total_images_to_process = 1
 
-        print(f"{self.eth_address} will process images from index {self.start_index} to {self.end_index - 1}. Total images: {total_images_to_process}")
 
         processed_images = 0
         for images_batch, _ in self.dataset:
             for image in images_batch:
-                if processed_images >= total_images_to_process:
-                    break
-
-                plt.imshow(image.numpy().astype("uint8"))
-                plt.title(f"Processing Image {processed_images + 1} by {self.eth_address}")
-                plt.show()
 
                 # Predict each image individually
                 pred = self.model.predict(tf.expand_dims(image, 0))  # Add batch dimension
                 prediction = tf.argmax(pred, axis=1).numpy()[0]  # Get the prediction for the single image
                 predictions.append(prediction)
-                processed_images += 1
-
-            if processed_images >= total_images_to_process:
-                break
 
         #self.client.receive_labels(self.eth_address, predictions,requestID)
         print(f"Total number of processed images by {self.eth_address}: {len(predictions)}")
         return predictions
 
 
-import requests
+
+# Define the Ethereum address
+address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44f"
 
 # Making a GET request to the FastAPI server to receive the batch information
-response = requests.get("https://dull-scrubs-bee.cyclic.app/batch")
+response = requests.get("https://dull-scrubs-bee.cyclic.app/batch", params={"address": address})
 batch_data = response.json()
+
+# Printing the batch data
 
 # Parsing the JSON response to extract the necessary information
 model_url = batch_data["modelUrl"]
 dataset_url = batch_data["datasetUrl"]
 requestID = batch_data["requestID"]
 
+print(requestID)
+
 # Initializing the client class with the data received from the server
 client = client(model_url, dataset_url)
 
 # Create a single user and assign them a batch
-single_user = user('user_1', client)
+single_user = user(address, client)
 single_user.request_and_load_batch()
 labels = single_user.startMining(requestID)
-client.receive_labels('user_1', labels,requestID)
+client.receive_labels(address, labels,requestID)
+
+
 
