@@ -58,24 +58,20 @@ Example code snippet to set up and run the system:
 
 ```html
 * Define user and server details
-```html
 eth_address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
 server_url = "https://dull-scrubs-bee.cyclic.app"
-```
 
 * Initialize the client with model and dataset URLs
-```html
 client = Client(model_url='https://path.to/model.h5', dataset_url='https://path.to/dataset.zip')
-```
+
 * Create a user and assign a batch
-```html
 user = User(eth_address, client)
 user.request_and_load_batch()
-```
-```html
+
 * Process images and submit labels
 labels = user.startMining()
 client.receive_labels(eth_address, labels)
+
 ```
 ## Features
 * Image Processing: Filters and prepares images for classification.
