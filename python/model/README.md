@@ -60,10 +60,9 @@ client.receive_labels(eth_address, labels)
 
 ```
 ## Features
-Image Processing: Filters and prepares images for classification.
-Model Prediction: Utilizes TensorFlow to predict image labels based on the trained model.
-Server Communication: Sends predicted labels back to the server via a PUT request.
-ECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+1. Image Processing: Filters and prepares images for classification.
+2. Model Prediction: Utilizes TensorFlow to predict image labels based on the trained model.
+3. Server Communication: Sends predicted labels back to the server via a PUT request.
+
 
 
