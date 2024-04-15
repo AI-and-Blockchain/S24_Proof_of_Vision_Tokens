@@ -22,11 +22,10 @@ contract TokenManager {
     // Placeholder for the pipelineAPI oracle
 
     // Changed from array to mapping due to runtime restrictions on arrays
-    mapping(uint256 => Request) public waitingRequests;
-    mapping(uint256 => Request) public workingRequests; 
+    mapping(uint256 => Request) public requests;
 
-    uint256[] waitingIDs;
-    uint256[] workingIDs;
+    uint256[] public waitingIDs;
+    uint256[] public workingIDs;
 
     uint256 public nextRequestID = 0; // Simple counter to track the next request ID
     uint256 public nextTokenID = 0; // Simple counter to track the next token ID
@@ -36,44 +35,35 @@ contract TokenManager {
         // Pipeline Chainlink API initialization placeholder
     }
 
-    function createRequest(string memory datasetSource, string memory modelSource, uint256 bid) public payable{
+    function createRequest(string memory datasetSource, string memory modelSource, uint256 numImages) public payable{
         // Increment to next ID
         uint256 requestID = nextRequestID++;
-        // Creates request if it doesn't exist on access
-        waitingRequests[requestID].requestID = requestID;
-        waitingRequests[requestID].datasetSource = datasetSource;
-        waitingRequests[requestID].modelSource = modelSource;
-        waitingRequests[requestID].requestOwner = msg.sender;
-        waitingRequests[requestID].bid = bid;
-        waitingRequests[requestID].consensusType = "";
-        waitingRequests[requestID].results = [int256(10000)];
+        Request storage request = requests[requestID];
+        request.requestID = requestID;
+        request.datasetSource = datasetSource;
+        request.modelSource = modelSource;
+        request.requestOwner = msg.sender;
+        request.bid = msg.value;
+        request.numImages = numImages;
+        request.consensusType = "";
+
         waitingIDs.push(requestID);
 
         distributeDividends(msg.value);
     }
 
-    function sendAllRequests() internal {
-        for(uint256 i = 0; i < waitingIDs.length; i++) {
-
-            // Move request from waitingRequests to workingRequests
-            uint256 requestID = waitingIDs[i];
-            workingRequests[requestID].requestID = requestID;
-            workingRequests[requestID].datasetSource = waitingRequests[requestID].datasetSource;
-            workingRequests[requestID].modelSource = waitingRequests[requestID].modelSource;
-            workingRequests[requestID].requestOwner = waitingRequests[requestID].requestOwner;
-            workingRequests[requestID].bid = waitingRequests[requestID].bid;
-            workingRequests[requestID].consensusType = waitingRequests[requestID].consensusType;
-            workingRequests[requestID].results = waitingRequests[requestID].results;
-            
+    function sendAllRequests() public {
+        while (waitingIDs.length > 0) {
+            uint256 requestID = waitingIDs[waitingIDs.length - 1];
             workingIDs.push(requestID);
-            delete waitingRequests[requestID];
+            waitingIDs.pop();
 
-            // Placeholder to send requests to Pipeline API oracle
+            // Placeholder to send to api
         }
-        delete waitingIDs;    
+
     }
 
-    function distributeDividends(uint256 val) private {
+    function distributeDividends(uint256 val) public {
         for(uint256 id = 0; id < nextTokenID; id++){
             dividends[id] += val;
         }
