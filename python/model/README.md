@@ -42,8 +42,8 @@ Set the model and dataset URLs in the client initialization. These URLs are used
 #### Usage
 Set the model and dataset URLs in the client initialization. These URLs are used to download the necessary machine learning model and image dataset.
 
-1. Initialize the Client and User:
-   * Set up the client with links to the model and dataset.
+1. Initialize the Client and User with Server:
+   * Set up the client with links to the model and dataset provided by the server.
    * Create a user instance with a specific Ethereum address linked to the client.
 
 2. Load and Process Batch
