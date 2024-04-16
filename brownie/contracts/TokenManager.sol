@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./POVToken.sol";
+import "./node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "./node_modules/@openzeppelin/contracts/utils/Strings.sol";
 
 contract TokenManager {
     struct Request {
@@ -24,8 +26,8 @@ contract TokenManager {
     // Changed from array to mapping due to runtime restrictions on arrays
     mapping(uint256 => Request) public requests;
 
-    uint256[] public waitingIDs;
-    uint256[] public workingIDs;
+    EnumerableSet.UintSet internal waitingIDs;
+    EnumerableSet.UintSet internal workingIDs;
 
     uint256 public nextRequestID = 0; // Simple counter to track the next request ID
     uint256 public nextTokenID = 0; // Simple counter to track the next token ID
@@ -34,6 +36,36 @@ contract TokenManager {
         token = POVToken(_tokenAddress);
         // Pipeline Chainlink API initialization placeholder
     }
+
+    function debugInfo() public view returns (string memory) {
+        uint256 waitingCount = EnumerableSet.length(waitingIDs);
+        uint256 workingCount = EnumerableSet.length(workingIDs);
+        
+        // Start building the debug info string
+        bytes memory debug = abi.encodePacked(
+            "Waiting Count: ", Strings.toString(waitingCount), "; ",
+            "Working Count: ", Strings.toString(workingCount), "; "
+        );
+        
+        debug = abi.encodePacked(debug, "Waiting IDs: ");
+        // Append each ID from waitingIDs
+        for (uint256 i = 0; i < waitingCount; i++) {
+            debug = abi.encodePacked(debug, Strings.toString(EnumerableSet.at(waitingIDs, i)), ", ");
+        }
+
+        debug = abi.encodePacked(debug, "Working IDs: ");
+        // Append each ID from workingIDs
+        for (uint256 i = 0; i < workingCount; i++) {
+            debug = abi.encodePacked(debug, Strings.toString(EnumerableSet.at(workingIDs, i)), ", ");
+        }
+        
+        return string(debug);
+    }
+
+    function testMint(address account, uint256 id, uint256 amount, bytes memory data) public {
+        ++nextTokenID;
+    }
+
 
     function createRequest(string memory datasetSource, string memory modelSource, uint256 numImages) public payable{
         // Increment to next ID
@@ -47,19 +79,21 @@ contract TokenManager {
         request.numImages = numImages;
         request.consensusType = "";
 
-        waitingIDs.push(requestID);
+        EnumerableSet.add(waitingIDs, requestID);
 
         distributeDividends(msg.value);
     }
 
     function sendAllRequests() public {
-        while (waitingIDs.length > 0) {
-            uint256 requestID = waitingIDs[waitingIDs.length - 1];
-            workingIDs.push(requestID);
-            waitingIDs.pop();
+        for (uint256 i = 0; i < EnumerableSet.length(waitingIDs); i++) {
+            uint256 requestID = EnumerableSet.at(waitingIDs, i);
+            EnumerableSet.add(workingIDs, requestID);
 
             // Placeholder to send to api
+
+            EnumerableSet.remove(waitingIDs, requestID);
         }
+
 
     }
 
