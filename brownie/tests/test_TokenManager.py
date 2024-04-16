@@ -27,8 +27,8 @@ def test_create_request(setup_contracts):
     assert request[3] == accounts[1]
     assert request[5] == 10
 
-    assert (token_manager.waitingIDs(0) == 0,
-            "waitingIDs should have the new request ID")
+    assert (token_manager.debugInfo() ==
+            "Waiting Count: 1; Working Count: 0; Waiting IDs: 0, Working IDs: ")
 
 
 def test_request_transition(setup_contracts):
@@ -37,26 +37,21 @@ def test_request_transition(setup_contracts):
     token_manager.createRequest("data_source", "model_source", 10, {
                                 'from': accounts[1], 'value': 10000})
 
-    waiting_ids_before = token_manager.waitingIDs()
+    assert (token_manager.debugInfo() ==
+            "Waiting Count: 1; Working Count: 0; Waiting IDs: 0, Working IDs: ")
 
     token_manager.sendAllRequests({'from': accounts[0]})
 
-    working_ids = token_manager.workingIDs()
-    waiting_ids_after = token_manager.waitingIDs()
-
-    assert len(working_ids) == 1
-    assert len(waiting_ids_after) == 0
-
-    # Compare the waiting IDs before moving with the working IDs in reverse order
-    assert working_ids[0] == waiting_ids_before[-1]
+    assert (token_manager.debugInfo() ==
+            "Waiting Count: 0; Working Count: 1; Waiting IDs: Working IDs: 0, ")
 
 
 def test_claim_dividends(setup_contracts):
     pov_token, token_manager = setup_contracts
     token_manager.createRequest("data_source", "model_source", 10, {
                                 'from': accounts[1], 'value': 10000})
-    pov_token.mint(accounts[2], 0, 10, b'', {'from': accounts[0]})
-
+    token_manager.testMint(accounts[2], 0, 1, b'', {'from': accounts[0]})
+    pov_token.mint(accounts[2], 0, 1, b'', {'from': accounts[0]})
     # Distribute dividends to token holders
     token_manager.distributeDividends(10000, {'from': accounts[0]})
 
