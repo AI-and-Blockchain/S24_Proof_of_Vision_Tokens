@@ -1,127 +1,114 @@
 @startuml
-class FastAPI {
-        +GET /favicon.ico(): FileResponse
-        +GET /(): {"message": "API is working"}
-        +POST /newRequest(req: Request): {"message": "Request received"}
-        +GET /batch(address: str): BatchItem
-        +PUT /labels(labels: Labels): {"message": "Labels received"}
-    }
+abstract class Consensus {
+  {abstract} +takeConsensus(data)
+  {abstract} +receiveData(data) : void
+}
 
-    class Labels {
-        +requestID: int
-        +userAddress: str
-        +labels: list
-    }
+class ImageLabelConsensus {
+  +takeConsensus(data)
+  +receiveData(data) : void
+}
 
-    class Request {
-        +requestID: int
-        +datasetSource: str
-        +numImages: int
-        +modelSource: str
-        +requestOwner: str
-        +bid: int
-        +consensusType: str
-        +result: list
-        +participation: dict[str, float]
-        +__lt__(other: Request): bool
-    }
+class PipelineRequest {
+  -requestID : Uint
+  -datasetSource : String
+  -modelSource : String
+  -provider : Address
+  -bid : Uint
+  -consensusMethod : Consensus
+  -result : Container
+  -participation : Map<Worker, float>
+  -batcher: BatchMaker
+}
 
-    class BatchItem {
-        +modelUrl: str
-        +datasetUrl: str
-        +indexTuple: tuple[int, int]
-        +requestID: int
-    }
+class Worker {
+  -WorkerAddress : String
+  -currentlyWorking : Bool
+  -currentRequest : Request
+  -currentDeposit : Uint
+  +takeDeposit(amount : Uint)
+  +returnDeposit() : void
+}
 
-    class Worker {
-        +address: str
-        +participation: float
-        +__init__(address: str)
-        +__lt__(other: Worker): bool
-    }
+class Pipeline {
+  -waitingRequests : PriorityQueue<PipelineRequest>
+  -workingRequests : PipelineRequest[]
+  -Workers : Worker[]
+  +retrieveRequests() : Request[]
+  +finishRequest(request : Request)
+}
 
-    class PipelineRequest {
-        +requestID: int
-        +datasetSource: str
-        +numImages: int
-        +modelSource: str
-        +requestOwner: str
-        +bid: int
-        +result: list
-        +participation: dict[Worker, float]
-        +workers: list[Worker]
-        +consensusObj: ImageLabelConsensus
-        +batchMaker: Batchmaker
-        +__init__(request: Request)
-        +__init__(requestID: int, datasetSource: str, numImages: int, modelSource: str, requestOwner: str, bid: int, result: list, participation: dict[Worker, float])
-        +add_worker(worker: Worker)
-    }
+class BatchMaker {
+ -batchIndices: bool[]
+ -requestID: Uint
++BatchMaker()
++sendToMiners()
++returnToRequest()
+}
 
-    class Pipeline {
-        +req_pq: list[PipelineRequest]
-        +currentRequest: PipelineRequest
-        +__init__()
-        +add_request(req: PipelineRequest)
-        +check_request()
-    }
+class User {
+  -Address : String
+  -minReward : Uint
+  +setMinReward(reward : Uint)
+}
 
-    class Client {
-        +eth_address: str
-        +batchmaker: Batchmaker
-        +model: tf.keras.Model
-        +dataset: tf.data.Dataset
-        +start_index: int
-        +end_index: int
-        +__init__(eth_address: str, batchmaker: Batchmaker)
-        -_download_file(url: str, destination_path: str)
-        -_extract_zip(file_path: str, extract_path: str)
-        -_filter_images(directory: str)
-        +getClientModel(model_url: str, model_path: str)
-        +getDataset(dataset_url: str, dataset_path: str)
-        +request_and_load_batch()
-        +startMining(): list[int]
-    }
+class Client {
+  -Worker : User
+  +getModel(request : Request)
+  +getDataSet(request : Request)
+  +startMining(user : User)
+}
 
-    class Batchmaker {
-        +default_model_url: str
-        +default_dataset_url: str
-        +total_images: int
-        +num_clients: int
-        +batches: dict[str, dict]
-        +__init__(model_url: str, dataset_url: str, total_images: int, num_clients: int)
-        +distribute_batches()
-        +request_batch(eth_address: str): dict
-        +receive_labels(eth_address: str, labels: list)
-    }
+class TokenManager {
+  -dividends : Map<Uint, Uint>
+  -token : POVToken
+  -Workers : Address[]
+  -pipelineAPI : Oracle
+  -waitingRequests : Map<Uint, Request>
+  -workingRequests : Map<Uint, Request>
+  -waitingIDs : Uint[]
+  -workingIDs : Uint[]
+  -nextRequestID : Uint
+  -nextTokenID : Uint
+  +createRequest(datasetSource : String, modelSource : String, bid : Uint) public payable
+  +sendAllRequests() internal
+  +distributeDividends(val : Uint) private
+  +claimDividends() public nonReetrant
+  +<<Modifier>> nonReentrant
+  +<<Modifier>>
+}
 
-    class Consensus {
-        <<abstract>>
-        +receiveData(data: any)
-        +responseData(): any
-    }
+class Request {
+  -requestID : Uint
+  -datasetSource : String
+  -modelSource : String
+  -requestOwner : Address
+  -bid : Uint
+  -numImages : Uint
+  -consensusType : String
+  -result : Container
+  -participation : Map<address, Uint>
+}
 
-    class ImageLabelConsensus {
-        +received_labels: dict[str, list]
-        +__init__()
-        +receiveData(data: dict[str, list])
-        +responseData(): list
-        +checkDone(): list|None
-    }
+class ERC721 {
+}
 
-    FastAPI --> Labels
-    FastAPI --> Request
-    FastAPI --> BatchItem
-    FastAPI --> Pipeline
+class POVToken {
+}
 
-    Pipeline --> PipelineRequest
-    PipelineRequest --> Request
-    PipelineRequest --> Worker
-    PipelineRequest --> ImageLabelConsensus
-    PipelineRequest --> Batchmaker
+class Oracle {
+}
 
-    Client --> Batchmaker
+TokenManager "1" -- "many" Request : contains
+TokenManager -- POVToken : owns
+POVToken -- ERC721 : is
+TokenManager -- Oracle : uses
 
-    Batchmaker --> PipelineRequest
-
-    ImageLabelConsensus --> Consensus
+Consensus <|-- ImageLabelConsensus
+PipelineRequest "1" *-- "1" Consensus : uses
+PipelineRequest "1" *-- "1" BatchMaker : uses
+Worker "1" -- "1" PipelineRequest : working on
+Pipeline "1" -- "many" PipelineRequest : manages
+Pipeline "1" -- "many" Worker : manages
+Client -down-> User : has
 @enduml
