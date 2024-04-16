@@ -3,10 +3,13 @@ This document guides you through the installation of Brownie and how to run test
 # Prerequisites
 - Python 3.6+ installed on your machine
 - pip for managing Python packages
+- npm for managing node packages
 # Installation Steps
 `pip install eth-brownie`
 
 Navigate to brownie root folder
+
+`npm install @openzeppelin/contracts`
 
 `brownie test --logging=INFO > test_results.log`
 
