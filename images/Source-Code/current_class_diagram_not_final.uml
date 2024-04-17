@@ -18,7 +18,6 @@ class PipelineRequest {
   -consensusMethod : Consensus
   -result : Container
   -participation : Map<Worker, float>
-  -batcher: BatchMaker
 }
 
 class Worker {
@@ -78,7 +77,6 @@ class Request {
   -requestOwner : Address
   -bid : Uint
   -numImages : Uint
-  -consensusType : String
   -result : Container
   -participation : Map<address, Uint>
 }
@@ -99,7 +97,6 @@ TokenManager -- Oracle : uses
 
 Consensus <|-- ImageLabelConsensus
 PipelineRequest "1" *-- "1" Consensus : uses
-PipelineRequest "1" *-- "1" BatchMaker : uses
 Worker "1" -- "1" PipelineRequest : working on
 Pipeline "1" -- "many" PipelineRequest : manages
 Pipeline "1" -- "many" Worker : manages
