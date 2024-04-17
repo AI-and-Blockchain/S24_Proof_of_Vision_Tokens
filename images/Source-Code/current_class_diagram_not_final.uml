@@ -38,22 +38,15 @@ class Pipeline {
   +finishRequest(request : Request)
 }
 
-class BatchMaker {
- -batchIndices: bool[]
- -requestID: Uint
-+BatchMaker()
-+sendToMiners()
-+returnToRequest()
-}
+
 
 class User {
   -Address : String
-  -minReward : Uint
-  +setMinReward(reward : Uint)
 }
 
 class Client {
   -Worker : User
+ -requestID: Uint
   +getModel(request : Request)
   +getDataSet(request : Request)
   +startMining(user : User)
