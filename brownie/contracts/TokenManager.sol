@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./POVToken.sol";
 import "./node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./node_modules/@openzeppelin/contracts/utils/Strings.sol";
+using EnumerableSet for EnumerableSet.AddressSet;
 
 contract TokenManager {
     struct Request {
@@ -14,8 +15,8 @@ contract TokenManager {
         uint256 bid;
         uint256 numImages;
         string consensusType;
-        int[] results;
-        mapping(address => uint256) participation; // "Normalized" to 100,000 bc no floats
+        string results;
+        EnumerableSet.AddressSet participants;
     }
 
     mapping(uint256 => uint256) public dividends; // key is token id, value is number of wei
@@ -24,7 +25,7 @@ contract TokenManager {
     // Placeholder for the pipelineAPI oracle
 
     // Changed from array to mapping due to runtime restrictions on arrays
-    mapping(uint256 => Request) public requests;
+    mapping(uint256 => Request) internal requests;
 
     EnumerableSet.UintSet internal waitingIDs;
     EnumerableSet.UintSet internal workingIDs;
@@ -123,9 +124,22 @@ contract TokenManager {
         payable(msg.sender).transfer(totalDividends);
     }
 
-    function retrieveData(uint256 requestID) public returns (string memory) {
-        // Placeholder to access data from Pipeline API oracle with api callback
-        // Request struct may be modified to store callback
+    function retrieveData(
+        uint256 requestID,
+        string memory _results,
+        address[] memory _participants
+    ) public {
+        Request storage req = requests[requestID];
+
+        req.results = _results;
+
+        for (uint256 i = 0; i < _participants.length; i++) {
+            req.participants.add(_participants[i]);
+        }
+    }
+
+    function getResults(uint256 requestID) public view returns (string memory) {
+        return requests[requestID].results;
     }
 
 }
