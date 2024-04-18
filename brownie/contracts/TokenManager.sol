@@ -19,6 +19,9 @@ contract TokenManager {
         EnumerableSet.AddressSet participants;
     }
 
+    event numParticipants(uint indexed value);
+    event tokenPaid(uint tokenID, address paidTo);
+
     mapping(uint256 => uint256) public dividends; // key is token id, value is number of wei
     POVToken public token;
     address[] public workers;
@@ -33,9 +36,14 @@ contract TokenManager {
     uint256 public nextRequestID = 0; // Simple counter to track the next request ID
     uint256 public nextTokenID = 0; // Simple counter to track the next token ID
 
+    
     constructor(address _tokenAddress) {
         token = POVToken(_tokenAddress);
         // Pipeline Chainlink API initialization placeholder
+    }
+
+    function test() public view returns (uint){
+        return token.test();
     }
 
     function debugInfo() public view returns (string memory) {
@@ -68,7 +76,7 @@ contract TokenManager {
     }
 
 
-    function createRequest(string memory datasetSource, string memory modelSource, uint256 numImages) public payable{
+    function createRequest(string memory datasetSource, string memory modelSource, uint256 numImages) public payable returns(uint256){
         // Increment to next ID
         uint256 requestID = nextRequestID++;
         Request storage request = requests[requestID];
@@ -83,6 +91,11 @@ contract TokenManager {
         EnumerableSet.add(waitingIDs, requestID);
 
         distributeDividends(msg.value);
+        return requestID;
+    }
+
+    function viewRequest(uint256 id) public view returns(string memory, string memory, address, uint256, uint256){
+        return (requests[id].datasetSource, requests[id].modelSource, requests[id].requestOwner, requests[id].numImages, requests[id].bid);
     }
 
     function sendAllRequests() public {
@@ -99,8 +112,12 @@ contract TokenManager {
     }
 
     function distributeDividends(uint256 val) public {
+        if (nextTokenID == 0){
+            return;
+        }
+        uint valPerToken = val / nextTokenID;
         for(uint256 id = 0; id < nextTokenID; id++){
-            dividends[id] += val;
+            dividends[id] += valPerToken;
         }
     }
 
@@ -128,13 +145,15 @@ contract TokenManager {
         uint256 requestID,
         string memory _results,
         address[] memory _participants
-    ) public {
+    ) public returns(uint){
         Request storage req = requests[requestID];
 
         req.results = _results;
-
         for (uint256 i = 0; i < _participants.length; i++) {
             req.participants.add(_participants[i]);
+            uint tokenID = nextTokenID;
+            nextTokenID++;
+            token.mint(_participants[i], tokenID, 1, "");
         }
     }
 

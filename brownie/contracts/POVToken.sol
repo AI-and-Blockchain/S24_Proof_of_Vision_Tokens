@@ -5,18 +5,22 @@ import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/token/ERC1155/ERC115
 import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/access/Ownable.sol";
 
 contract POVToken is ERC1155, Ownable {
-    constructor(address initialOwner) ERC1155("") Ownable() {
-        transferOwnership(initialOwner);
+
+    event MintingAttempt(address account, uint256 id, uint256 amount, bytes data);
+    event MintingSuccess(address account, uint256 id, uint256 amount, bytes data);
+    uint public test = 1234;
+    constructor() ERC1155("") Ownable() {
+    }
+
+    function setOwner(address owner) public onlyOwner {
+        transferOwnership(owner);
     }
 
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
     }
 
-    function mint(address account, uint256 id, uint256 amount, bytes memory data)
-        public
-        onlyOwner
-    {
-        _mint(account, id, amount, data);
+    function mint(address to, uint256 id, uint256 amount, bytes memory data) public returns(uint){
+        _mint(to, id, amount, data);
     }
 }
