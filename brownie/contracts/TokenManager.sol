@@ -45,9 +45,18 @@ contract TokenManager is FunctionsClient{
     "throw Error(`Request failed, try checking the params provided`);"
     "}"
     "console.log(requestResponse);"
-    "return Functions.encodeString(JSON.stringify(requestResponse));"
+    "return Functions.encodeString(JSON.stringify(requestResponse));";
 
     uint32 gasLimit = 300000;
+
+    bytes32 donID =
+        0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
+
+    bytes32 public s_lastRequestId;
+    bytes public s_lastResponse;
+    bytes public s_lastError;
+
+    error UnexpectedRequestID(bytes32 requestId);
 
     address router = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
 
@@ -100,7 +109,7 @@ contract TokenManager is FunctionsClient{
     }
 
 
-    function createRequest(string memory datasetSource, string memory modelSource, uint256 numImages) public payable{
+    function createRequest(uint64 subscriptionId, string memory datasetSource, string memory modelSource, uint256 numImages) public payable{
         // Increment to next ID
         uint256 requestID = nextRequestID++;
         Request storage request = requests[requestID];
@@ -119,12 +128,12 @@ contract TokenManager is FunctionsClient{
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
         string[] memory args = new string[](6);
-        args[0]  = request.requestID;
+        args[0]  = Strings.toString(request.requestID);
         args[1]  = request.datasetSource;
-        args[2]  = request.numImages;
+        args[2]  = Strings.toString(request.numImages);
         args[3]  = request.modelSource;
-        args[4]  = request.requestOwner;
-        args[5]  = request.bid;
+        args[4]  = Strings.toHexString(uint256(uint160(msg.sender)), 20);
+        args[5]  = Strings.toString(request.bid);
         req.setArgs(args); // Set the arguments for the request
 
         // Send the request and store the request ID
@@ -192,6 +201,16 @@ contract TokenManager is FunctionsClient{
 
     function getResults(uint256 requestID) public view returns (string memory) {
         return requests[requestID].results;
+    }
+
+    function fulfillRequest(
+        bytes32 requestId,
+        bytes memory response,
+        bytes memory err
+    ) internal override {
+        if (s_lastRequestId != requestId) {
+            revert UnexpectedRequestID(requestId); // Check if request IDs match
+        }
     }
 
 }
