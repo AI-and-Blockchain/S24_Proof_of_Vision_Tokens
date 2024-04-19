@@ -1,0 +1,123 @@
+@startuml
+
+class API {
++root(): dict
++NewRequest(req: Request)
++GiveBatch(address: str): BatchItem
++PostLabels(data: LabelReturnItem)
++ShowLabels()
++ShowReq()
+}
+
+abstract class Consensus {
+{abstract} +receiveData(data)
+{abstract} +responseData()
+}
+
+class ImageLabelConsensus {
+-received_labels: dict
++receiveData(data)
++responseData()
+}
+
+class PipelineRequest {
+-requestID: int
+-datasetSource: str
+-numImages: int
+-modelSource: str
+-requestOwner: str
+-bid: int
+-workers: list[Worker]
+-consensus: ImageLabelConsensus
++add_worker(worker: Worker)
++get_batch(): BatchItem
++add_labels_check_done(data: LabelReturnItem)
++get_labels(): dict
+}
+
+class Worker {
+-address: str
+-participation: float
+-labels: list
++eq(other): bool
++lt(other): bool
+}
+
+class Pipeline {
+-reqPQ: list[PipelineRequest]
+-currentRequest: PipelineRequest
++add_request(req: PipelineRequest)
++get_curr_req(): PipelineRequest
++set_next_req()
+}
+
+class User {
+-Address: str
+}
+
+class Client {
+-Worker: User
+-requestID: int
++getModel(request: Request)
++getDataSet(request: Request)
++startMining(user: User)
+}
+
+class TokenManager {
+-dividends: dict[int, int]
+-token: POVToken
+-router: str
+-requests: dict[int, Request]
+-waitingIDs: set[int]
+-workingIDs: set[int]
+-nextRequestID: int
+-nextTokenID: int
++createRequest(datasetSource: str, modelSource: str, numImages: int) public payable returns(int)
++sendAllRequests() public
++distributeDividends(val: int) internal
++claimDividends() public nonReentrant
++retrieveData(requestID: int, _results: str, _participants: list[str]) public pipelineOnly returns(int)
++getResults(requestID: int) public view returns(str)
++<<Modifier>> nonReentrant
++<<Modifier>> pipelineOnly
++<<Event>> tokenPaid(tokenID: int, paidTo: str)
++<<Event>> dividendsPaid(amountPerToken: int)
++<<Event>> dividendsClaimed(amount: int, paidTo: str)
+}
+
+class Request {
+-requestID: int
+-datasetSource: str
+-modelSource: str
+-requestOwner: str
+-bid: int
+-numImages: int
+-consensusType: str
+-results: str
+-participants: set[str]
+}
+
+class ERC1155 {
+}
+
+class Ownable {
+}
+
+class POVToken {
++setOwner(owner: str) public onlyOwner
++setURI(newuri: str) public onlyOwner
++mint(add: str, id: int, amount: int, data: bytes) public returns(int)
+}
+
+API -- Pipeline
+TokenManager "1" -- "many" Request: contains
+TokenManager -- POVToken: owns
+POVToken --|> ERC1155: is
+POVToken --|> Ownable: is
+Consensus <|-- ImageLabelConsensus
+PipelineRequest "1" *-- "1" ImageLabelConsensus: uses
+Worker "many" -- "1" PipelineRequest: working on
+Pipeline "1" -- "many" PipelineRequest: manages
+Client -down-> User: has
+
+@enduml
