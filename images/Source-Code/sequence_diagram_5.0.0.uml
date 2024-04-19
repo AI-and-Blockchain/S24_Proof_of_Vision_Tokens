@@ -1,0 +1,44 @@
+title Sequence Diagram for PoV as Russell Knows It
+
+participant "Supplier \n(Blockchain)" as Supplier
+participant "Hosting Service \n(Off Chain)" as Hosting Service
+participant "TokenManager Smart Contract \n(Blockchain)" as TokenManager
+participant "Chainlink Oracle \n(Blockchain)" as Chainlink
+participant "Minted Tokens \n(Blockchain)" as Tokens
+participant "FastAPI App" as App
+participant "Pipeline \n(Python Class)" as Pipeline
+participant "PipelineRequest \n(Python Class)" as PipelineRequest
+participant "Client \n(Python Class)" as BatchMaker
+participant "User \n(Python Class on Worker's Machine)" as Client
+participant "Consensus \n(Python Class)" as Consensus
+
+
+Supplier->Hosting Service:Manually uploads images and model\nto a hosting service off-chain
+Supplier->TokenManager:Transacts with TokenManager to make a request.\nProvides:Bid in eth, image links, model link
+TokenManager->Chainlink:Sends Request object to oracle
+Chainlink->App:Sends API request with Request object (POST /newRequest)
+App->PipelineRequest:Creates a PipelineRequest
+PipelineRequest->Pipeline:Gets added to \nRequest PriorityQueue (Pipeline.add_request)
+Pipeline->Pipeline:Wait until this Request is next
+Pipeline->PipelineRequest:Selects Request to be current active request\n(from pipeline.check_request which is called later)
+Client->App:Asks for request (GET /batch),\nsends address too
+App->PipelineRequest:pipelinerequest.add_worker to keep track of workers
+App->BatchMaker:Seperates the request into Batches if this is the first time (unknown method)
+BatchMaker->Client:Sends batch info in API return\n(the model and images links)
+Client->Hosting Service:Requests images and model
+Hosting Service->Client:Sends images and model
+Client->Client:Classifies images using model\n (unknown methods)
+
+Client->App:Sends image labels through API (PUT /labels)
+App->Pipeline:pipeline.check_request
+Pipeline->Consensus:Sends image labels
+
+Consensus->Pipeline:None if consensus isn't done, the labels otherwise
+Pipeline->App:Returns None or Labels
+App->App:Takes PUT /label reqs until\nLabels are returned
+PipelineRequest->App:Sends worker info\n(PipelineRequest.workers)
+App->Chainlink:Sends completed request info\n(Includes all worker address info) (caleb working on method)
+Chainlink->TokenManager:Receives completed Request through callback
+TokenManager->Tokens:Mints more tokens, assigns the token owners\nto the workers that participated in completing the request
+TokenManager->Supplier:Transacts to send labeled images
+TokenManager->Tokens:Transacts to give the eth of the bid in dividends to all minted tokens
