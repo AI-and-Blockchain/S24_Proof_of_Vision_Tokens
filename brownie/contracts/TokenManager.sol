@@ -6,7 +6,7 @@ import "./node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./node_modules/@openzeppelin/contracts/utils/Strings.sol";
 import {FunctionsClient} from "./node_modules/@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
 import {ConfirmedOwner} from "./node_modules/@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
-import {FunctionsRequest} from "@./node_modules/chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
+import {FunctionsRequest} from "./node_modules/@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 using EnumerableSet for EnumerableSet.AddressSet;
 
 contract TokenManager is FunctionsClient{
@@ -23,6 +23,31 @@ contract TokenManager is FunctionsClient{
         string results;
         EnumerableSet.AddressSet participants;
     }
+
+    string source = 
+    "const apiURL = `URL`;"
+    "const requestData = {"
+    "`requestID`: args[0],"
+    "`datasetSource`: args[1],"
+    "`numImages`: args[2],"
+    "`modelSource`: args[3],"
+    "`requestOwner`: args[4],"
+    "`bid`: args[5]"
+    "}"
+    "const requestRequest = Functions.makeHttpRequest({"
+    "url: `URL`,"
+    "method: `POST`,"
+    "data: requestData"
+    "})"
+    "const requestResponse = await requestRequest;"
+    "if (requestResponse.error) {"
+    "console.error(requestResponse.error);"
+    "throw Error(`Request failed, try checking the params provided`);"
+    "}"
+    "console.log(requestResponse);"
+    "return Functions.encodeString(JSON.stringify(requestResponse));"
+
+    uint32 gasLimit = 300000;
 
     address router = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
 
@@ -90,6 +115,25 @@ contract TokenManager is FunctionsClient{
         EnumerableSet.add(waitingIDs, requestID);
 
         distributeDividends(msg.value);
+
+        FunctionsRequest.Request memory req;
+        req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
+        string[] memory args = new string[](6);
+        args[0]  = request.requestID;
+        args[1]  = request.datasetSource;
+        args[2]  = request.numImages;
+        args[3]  = request.modelSource;
+        args[4]  = request.requestOwner;
+        args[5]  = request.bid;
+        req.setArgs(args); // Set the arguments for the request
+
+        // Send the request and store the request ID
+        s_lastRequestId = _sendRequest(
+            req.encodeCBOR(),
+            subscriptionId,
+            gasLimit,
+            donID
+        );
 
     }
 
