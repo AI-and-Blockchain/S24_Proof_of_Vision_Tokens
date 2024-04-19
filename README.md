@@ -25,7 +25,7 @@ The system involves three primary end-user groups, each with distinct roles and 
 ![UML Diagram](images/uml.png)
 
 ## Sequence Diagram
-![PoV_Seq](images/seq_good_maybe.png)
+![PoV_Seq](images/sequence_5.0.png)
 
 
 ## Project Outcomes
