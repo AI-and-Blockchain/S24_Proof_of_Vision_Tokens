@@ -9,6 +9,9 @@ The second deliverable focuses on the development of a pipeline paired with a cl
 
 Through this pipeline, users are able to submit image data, which is then processed using predefined models, ensuring the output is reliable and consensus-based before it is returned. This automated mechanism enhances the system's efficiency and user-friendliness, promoting active participation from users in the token mining process.
 
+## Video Overview:
+https://www.youtube.com/watch?v=gr5TwMEFJ4Y
+
 ## Demo/Stakeholders
 The system involves three primary end-user groups, each with distinct roles and objectives:
 
