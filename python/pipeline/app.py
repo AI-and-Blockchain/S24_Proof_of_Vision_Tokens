@@ -110,9 +110,9 @@ def PostLabels(data: LabelReturnItem):
         # Create smart contract instance
         contract = web3.eth.contract(address=contract_address, abi=abi)
 
-        requestID = 1
-        results = "1 2 3 4 5 6 7 8 9 0"
-        participants = ["0x1b78a8EdCA85F4Fbc8463A68E6D3a9dE8958b343", "0xb0d3c84d35f4eF9De6887f49a889115e7a9cF96F", "0xBF974A3aDD4b01b84c6A7408789390e3293f5f9E"]
+        requestID = curr_req.requestID
+        results = " ".join([str(n) for n in labels])
+        participants = [worker.address for worker in curr_req.workers if worker.participation]
         
         # Initialize address nonce
         nonce = web3.eth.get_transaction_count(caller)
@@ -135,7 +135,7 @@ def PostLabels(data: LabelReturnItem):
 
 
         pipeline.set_next_req()
-        return {"message": f"Labels received and consensus reached: {labels}"}
+        return {"message": f"Labels received and consensus reached: RequestID: {requestID}, Results: {results}, Participants: {participants}"}
     
     return {"message": "Labels received, waiting on consensus"}
 
