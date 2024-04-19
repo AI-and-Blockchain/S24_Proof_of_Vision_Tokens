@@ -4,9 +4,14 @@ pragma solidity ^0.8.0;
 import "./POVToken.sol";
 import "./node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./node_modules/@openzeppelin/contracts/utils/Strings.sol";
+import {FunctionsClient} from "./node_modules/@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
+import {ConfirmedOwner} from "./node_modules/@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+import {FunctionsRequest} from "@./node_modules/chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 using EnumerableSet for EnumerableSet.AddressSet;
 
-contract TokenManager {
+contract TokenManager is FunctionsClient{
+    using FunctionsRequest for FunctionsRequest.Request;
+
     struct Request {
         uint256 requestID;
         string datasetSource;
@@ -18,6 +23,8 @@ contract TokenManager {
         string results;
         EnumerableSet.AddressSet participants;
     }
+
+    address router = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
 
     mapping(uint256 => uint256) public dividends; // key is token id, value is number of wei
     POVToken public token;
@@ -33,7 +40,7 @@ contract TokenManager {
     uint256 public nextRequestID = 0; // Simple counter to track the next request ID
     uint256 public nextTokenID = 0; // Simple counter to track the next token ID
 
-    constructor(address _tokenAddress) {
+    constructor(address _tokenAddress) FunctionsClient(router) {
         token = POVToken(_tokenAddress);
         // Pipeline Chainlink API initialization placeholder
     }
@@ -83,6 +90,7 @@ contract TokenManager {
         EnumerableSet.add(waitingIDs, requestID);
 
         distributeDividends(msg.value);
+
     }
 
     function sendAllRequests() public {
