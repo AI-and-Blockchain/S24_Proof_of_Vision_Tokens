@@ -83,28 +83,32 @@ class user:
                 except (IOError, SyntaxError):
                     os.remove(file_path)
 
-    def getuserModel(self, model_url):
+    def getuserModel(self, model_url,model_path):
         # Download and load the TensorFlow model
-        model_path = 'mnist_digit_model'
         self._download_file(model_url, model_path)
-        self.model = tf.keras.models.load_model(model_path)
+        if os.path.exists(model_path):
+            self.model = tf.keras.models.load_model(model_path)
 
-    def getDataset(self, dataset_url):
-        # Download, extract, and prepare the dataset
-        dataset_zip_path = 'mnist_digit_model.zip'
-        dataset_extract_path = 'mnist_digit_dataset'
-        self._download_file(dataset_url, dataset_zip_path)
-        self._extract_zip(dataset_zip_path, dataset_extract_path)
+    def getDataset(self, dataset_url,dataset_path):
+        self._download_file(dataset_url, dataset_path)
+        dataset_extract_path = 'dataset_extracted'
+        self._extract_zip(dataset_path, dataset_extract_path)
         self._filter_images(dataset_extract_path)
         self.dataset = tf.keras.preprocessing.image_dataset_from_directory(
-            dataset_extract_path, color_mode='grayscale', image_size=(28, 28),
-            batch_size=128, shuffle=False)
+            dataset_extract_path,
+            color_mode='grayscale',
+            image_size=(28, 28),
+            batch_size=128,  # Set batch size to 100
+            shuffle=False  # Disable shuffling to maintain the order
+        )
 
     def request_and_load_batch(self):
         # Request batch info and load model and dataset
         batch_info = self.client.request_batch(self.eth_address)
-        self.getuserModel(batch_info['model_url'])
-        self.getDataset(batch_info['dataset_url'])
+        model_path = os.path.join('models', 'downloaded_model.h5')
+        dataset_path = os.path.join('datasets', 'downloaded_dataset.zip')
+        self.getuserModel(batch_info['model_url'], model_path)
+        self.getDataset(batch_info['dataset_url'], dataset_path)
 
     def startMining(self, requestID):
         # Verify if both model and dataset are loaded, raise an error if not
