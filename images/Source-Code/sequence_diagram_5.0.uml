@@ -1,8 +1,10 @@
-title Sequence Diagram for PoV as Russell Knows It
+title Sequence Diagram Apr 19 12:04pm
 
 participant "Supplier \n(Blockchain)" as Supplier
 participant "Hosting Service \n(Off Chain)" as Hosting Service
+participant "Token Owner \n(Blockchain)" as tkOwner
 participant "TokenManager Smart Contract \n(Blockchain)" as TokenManager
+participant "POVToken Smart Contract \n(Blockchain)" as POVToken
 participant "Chainlink Oracle \n(Blockchain)" as Chainlink
 participant "Minted Tokens \n(Blockchain)" as Tokens
 participant "FastAPI App" as App
@@ -13,9 +15,12 @@ participant "User \n(Python Class on Worker's Machine)" as Client
 participant "Consensus \n(Python Class)" as Consensus
 
 
+
 Supplier->Hosting Service:Manually uploads images and model\nto a hosting service off-chain
 Supplier->TokenManager:Transacts with TokenManager to make a request.\nProvides:Bid in eth, image links, model link
 TokenManager->Chainlink:Sends Request object to oracle
+TokenManager->Tokens:Distributes the bid to minted tokens via dividends 
+tkOwner->TokenManager:Transacts to claim dividends
 Chainlink->App:Sends API request with Request object (POST /newRequest)
 App->PipelineRequest:Creates a PipelineRequest
 PipelineRequest->Pipeline:Gets added to \nRequest PriorityQueue (Pipeline.add_request)
@@ -39,6 +44,6 @@ App->App:Takes PUT /label reqs until\nLabels are returned
 PipelineRequest->App:Sends worker info\n(PipelineRequest.workers)
 App->Chainlink:Sends completed request info\n(Includes all worker address info) (caleb working on method)
 Chainlink->TokenManager:Receives completed Request through callback
-TokenManager->Tokens:Mints more tokens, assigns the token owners\nto the workers that participated in completing the request
+TokenManager->POVToken:Requests mint of tokens to participants
+POVToken->Tokens:Mints tokens
 TokenManager->Supplier:Transacts to send labeled images
-TokenManager->Tokens:Transacts to give the eth of the bid in dividends to all minted tokens
