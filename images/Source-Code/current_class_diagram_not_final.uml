@@ -1,4 +1,5 @@
 @startuml
+
 abstract class Consensus {
   {abstract} +takeConsensus(data)
   {abstract} +receiveData(data) : void
@@ -37,15 +38,13 @@ class Pipeline {
   +finishRequest(request : Request)
 }
 
-
-
 class User {
   -Address : String
 }
 
 class Client {
   -Worker : User
- -requestID: Uint
+  -requestID: Uint
   +getModel(request : Request)
   +getDataSet(request : Request)
   +startMining(user : User)
@@ -54,20 +53,23 @@ class Client {
 class TokenManager {
   -dividends : Map<Uint, Uint>
   -token : POVToken
-  -Workers : Address[]
-  -pipelineAPI : Oracle
-  -waitingRequests : Map<Uint, Request>
-  -workingRequests : Map<Uint, Request>
-  -waitingIDs : Uint[]
-  -workingIDs : Uint[]
+  -router : Address
+  -requests : Map<Uint, Request>
+  -waitingIDs : EnumerableSet.UintSet
+  -workingIDs : EnumerableSet.UintSet
   -nextRequestID : Uint
   -nextTokenID : Uint
-  +createRequest(datasetSource : String, modelSource : String, bid : Uint) public payable
-  +sendAllRequests() internal
-  +distributeDividends(val : Uint) private
-  +claimDividends() public nonReetrant
+  +createRequest(datasetSource : String, modelSource : String, numImages : Uint) public payable returns(Uint)
+  +sendAllRequests() public
+  +distributeDividends(val : Uint) internal
+  +claimDividends() public nonReentrant
+  +retrieveData(requestID : Uint, _results : String, _participants : Address[]) public pipelineOnly returns(Uint)
+  +getResults(requestID : Uint) public view returns(String)
   +<<Modifier>> nonReentrant
-  +<<Modifier>>
+  +<<Modifier>> pipelineOnly
+  +<<Event>> tokenPaid(tokenID : Uint, paidTo : Address)
+  +<<Event>> dividendsPaid(amountPerToken : Uint)
+  +<<Event>> dividendsClaimed(amount : Uint, paidTo : Address)
 }
 
 class Request {
@@ -77,28 +79,32 @@ class Request {
   -requestOwner : Address
   -bid : Uint
   -numImages : Uint
-  -result : Container
-  -participation : Map<address, Uint>
+  -consensusType : String
+  -results : String
+  -participants : EnumerableSet.AddressSet
 }
 
-class ERC721 {
+class ERC1155 {
+}
+
+class Ownable {
 }
 
 class POVToken {
-}
-
-class Oracle {
+  +setOwner(owner : Address) public onlyOwner
+  +setURI(newuri : String) public onlyOwner
+  +mint(add : Address, id : Uint, amount : Uint, data : Bytes) public returns(Uint)
 }
 
 TokenManager "1" -- "many" Request : contains
 TokenManager -- POVToken : owns
-POVToken -- ERC721 : is
-TokenManager -- Oracle : uses
-
+POVToken --|> ERC1155 : is
+POVToken --|> Ownable : is
 Consensus <|-- ImageLabelConsensus
 PipelineRequest "1" *-- "1" Consensus : uses
 Worker "1" -- "1" PipelineRequest : working on
 Pipeline "1" -- "many" PipelineRequest : manages
 Pipeline "1" -- "many" Worker : manages
 Client -down-> User : has
+
 @enduml
