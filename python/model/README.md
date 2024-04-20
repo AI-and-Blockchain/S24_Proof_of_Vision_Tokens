@@ -14,7 +14,6 @@ You're sections headers will be used to reference location of destination.
 
 ## Overview
 
-Creating ReadMe's for your Github repository can be tedious.  I hope this template can save you time and effort as well as provide you with some consistency across your projects.
 The system comprises two primary components:
 - client: Handles requests for batches of images and the submission of predicted labels to a server.
 - user: Manages the downloading and processing of image datasets and machine learning models, and performs image classification.
