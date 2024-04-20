@@ -12,8 +12,6 @@ Through this pipeline, users are able to submit image data, which is then proces
 ## Video Overview:
 https://www.youtube.com/watch?v=gr5TwMEFJ4Y
 
-![Video Overview](images/Proof of Vision Token.mp4) 
-
 ## Demo/Stakeholders
 The system involves three primary end-user groups, each with distinct roles and objectives:
 
