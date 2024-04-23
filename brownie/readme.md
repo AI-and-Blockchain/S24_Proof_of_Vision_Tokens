@@ -1,11 +1,16 @@
 # Introduction
-This document guides you through the installation of Brownie and how to run tests for the Solidity smart contracts that make up the blockchain component of the Proof Of Vision project. The results of the tests will be outputted to a log file for review.
+This document guides you through the installation of Brownie and how to run tests for the Solidity smart contracts that make up the blockchain component of the Proof Of Vision project, as well as the full integration test requiring the API to be active, and three instances of worker to achieve consensus. The results of the tests will be outputted to a log file for review.
 # Prerequisites
-- Python 3.6+ installed on your machine
-- pip for managing Python packages
-- npm for managing node packages
+- Conda installed on machine
+- NPM installed on machine
 # Installation Steps
-`pip install eth-brownie`
+`Conda create -n POV`
+
+`Conda activate POV`
+
+`Conda install pip`
+
+`pip install eth-brownie tensorflow matplotlib numpy pillow`
 
 Navigate to brownie root folder
 
@@ -20,6 +25,3 @@ Navigate to brownie root folder
 --> chain.sol [barebones test connectivitiy for chainlink]  
 - tests  
 --> test_TokenManager.py [Tests all smart contracts as they are all connected through TokenManager]  
-
-# Final Note
-This week types and structure is in flux and diagrams are slightly behind. Once we integrate a dynamic array library and believe we can move away from this problem, the diagrams will be prompty updated.
