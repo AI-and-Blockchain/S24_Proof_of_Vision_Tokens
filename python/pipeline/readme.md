@@ -48,10 +48,6 @@ If everything is done correctly, you will see this UI when going to the docs:
 
 
 ## Example Usage with Dummy Data
-To see this working with workers, follow the steps in the /model readme. 
-
-To see this working with the smart contract, do something that Caleb will add. 
-
 These steps can be done locally or on the hosted website, however the hosted website might not have the same data as the local version so local is recommended. It's reccomended to use the Swagger UI to interact with the API. Note that these steps don't necessarily have to be done in order except for the first newRequest call. You can also just play around, as the error messages should be descriptive enough to guide you.
 
 1. Create a new request using /newRequest with the following dummy data. To do this on the docs, select "POST /newRequest", click "Try it Out", paste this in, and click "Execute". The response will be under "Server Response".
